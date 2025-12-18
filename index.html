@@ -1,0 +1,1947 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎨 P2P Wall - Полностью браузерная версия</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #4a6fa5 0%, #3a4f8c 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header .subtitle {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .status-bar {
+            background: #f8f9fa;
+            padding: 15px 25px;
+            border-bottom: 2px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-badge.connected {
+            background: #28a745;
+            color: white;
+        }
+
+        .status-badge.disconnected {
+            background: #dc3545;
+            color: white;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            min-height: 600px;
+        }
+
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Панель управления */
+        .control-panel {
+            background: #f8f9fa;
+            padding: 25px;
+            border-right: 2px solid #e9ecef;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .control-group {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+        }
+
+        .control-group h3 {
+            color: #4a6fa5;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #dee2e6;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* ID Wall Card - НОВЫЙ СТИЛЬ */
+        .id-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .id-card .label {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .id-card .value {
+            font-family: monospace;
+            font-size: 14px;
+            word-break: break-all;
+            margin-bottom: 10px;
+            background: rgba(255,255,255,0.1);
+            padding: 8px;
+            border-radius: 5px;
+        }
+
+        /* Кнопки копирования */
+        .copy-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .copy-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            transition: all 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        .copy-btn.copied {
+            background: #28a745;
+        }
+
+        /* Input группы */
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            font-family: monospace;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        /* Кнопки */
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .btn-primary {
+            background: #28a745;
+        }
+
+        .btn-primary:hover {
+            background: #218838;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-info {
+            background: #17a2b8;
+        }
+
+        .btn-info:hover {
+            background: #138496;
+        }
+
+        .btn-small {
+            padding: 8px 15px;
+            font-size: 14px;
+        }
+
+        /* Форма добавления поста */
+        .post-form {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            margin-bottom: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            resize: vertical;
+            font-family: inherit;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        .file-inputs {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .file-inputs label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 10px;
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            transition: border-color 0.3s;
+        }
+
+        .file-inputs label:hover {
+            border-color: #667eea;
+        }
+
+        /* Список пиров */
+        .peers-list {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .peer-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border-bottom: 1px solid #f1f1f1;
+        }
+
+        .peer-item:last-child {
+            border-bottom: none;
+        }
+
+        .peer-avatar {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        /* Стена с постами */
+        .wall-container {
+            padding: 25px;
+            background: white;
+            overflow-y: auto;
+            max-height: 700px;
+        }
+
+        .wall {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .post {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+
+        .post:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateY(-3px);
+        }
+
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f1f1f1;
+        }
+
+        .post-id {
+            font-family: monospace;
+            background: #f8f9fa;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .post-timestamp {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .post-text {
+            line-height: 1.6;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .post-media {
+            margin: 15px 0;
+        }
+
+        .post-image {
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .post-audio {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        /* Magnet ссылки в постах */
+        .magnet-link {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+            border: 1px solid #dee2e6;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        .magnet-link .copy-magnet {
+            display: inline-block;
+            margin-left: 10px;
+            padding: 3px 8px;
+            background: #6c757d;
+            color: white;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .magnet-link .copy-magnet:hover {
+            background: #545b62;
+        }
+
+        /* Модальное окно для магнета */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.5em;
+            color: #4a6fa5;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .full-magnet {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 12px;
+            margin: 15px 0;
+            border: 1px solid #dee2e6;
+        }
+
+        /* QR код */
+        .qr-container {
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        #qrCode {
+            max-width: 200px;
+            margin: 0 auto;
+        }
+
+        /* Сообщения */
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+            display: block;
+        }
+
+        /* Загрузка */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Иконки */
+        .icon {
+            font-size: 1.2em;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .status-bar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .input-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+            
+            .copy-buttons {
+                flex-direction: column;
+            }
+        }
+		/* Кнопки управления постом */
+		.post-controls {
+			display: flex;
+			gap: 10px;
+			margin-top: 15px;
+			padding-top: 15px;
+			border-top: 1px solid #f1f1f1;
+		}
+
+		.post-control-btn {
+			padding: 6px 12px;
+			border: none;
+			border-radius: 6px;
+			background: #f8f9fa;
+			color: #6c757d;
+			font-size: 13px;
+			cursor: pointer;
+			display: flex;
+			align-items: center;
+			gap: 5px;
+			transition: all 0.3s;
+		}
+
+		.post-control-btn:hover {
+			background: #e9ecef;
+			transform: translateY(-1px);
+		}
+
+		.post-control-btn.delete {
+			background: #f8d7da;
+			color: #721c24;
+		}
+
+		.post-control-btn.delete:hover {
+			background: #f5c6cb;
+		}
+
+		/* Стили для плеера */
+		.audio-player {
+			width: 100%;
+			margin-top: 10px;
+			border-radius: 8px;
+			background: #f8f9fa;
+			padding: 10px;
+		}
+
+		.audio-player audio {
+			width: 100%;
+			height: 40px;
+		}
+
+		.audio-info {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			margin-bottom: 8px;
+		}
+
+		.audio-icon {
+			font-size: 20px;
+		}
+
+		.audio-title {
+			font-size: 14px;
+			color: #495057;
+		}
+
+		/* Кнопка очистки локальных данных */
+		.cleanup-section {
+			margin-top: 20px;
+			padding: 15px;
+			background: #fff3cd;
+			border: 1px solid #ffeaa7;
+			border-radius: 8px;
+		}
+
+		.cleanup-buttons {
+			display: flex;
+			gap: 10px;
+			margin-top: 10px;
+		}
+		
+		.cleanup-buttons, .input-group, .copy-buttons {
+			flex-wrap:wrap;
+		}
+		
+		.input-group > *, .btn-small, .cleanup-buttons > *{
+			display:block;
+			width:100%;
+		}
+
+		.cleanup-btn {
+			padding: 8px 15px;
+			border: none;
+			border-radius: 6px;
+			background: #dc3545;
+			color: white;
+			font-size: 14px;
+			cursor: pointer;
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			transition: all 0.3s;
+		}
+
+		.cleanup-btn:hover {
+			background: #c82333;
+			transform: translateY(-2px);
+		}
+
+		.cleanup-btn.warning {
+			background: #ffc107;
+			color: #212529;
+		}
+
+		.cleanup-btn.warning:hover {
+			background: #e0a800;
+		}
+
+		/* Модальное окно подтверждения */
+		.confirm-modal {
+			display: none;
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(0,0,0,0.5);
+			z-index: 1001;
+			align-items: center;
+			justify-content: center;
+		}
+
+		.confirm-content {
+			background: white;
+			padding: 30px;
+			border-radius: 15px;
+			max-width: 400px;
+			width: 90%;
+			text-align: center;
+		}
+
+		.confirm-buttons {
+			display: flex;
+			gap: 10px;
+			margin-top: 20px;
+			justify-content: center;
+		}
+
+		.confirm-btn {
+			padding: 10px 20px;
+			border: none;
+			border-radius: 8px;
+			cursor: pointer;
+			font-weight: 600;
+			transition: all 0.3s;
+		}
+
+		.confirm-btn.yes {
+			background: #dc3545;
+			color: white;
+		}
+
+		.confirm-btn.yes:hover {
+			background: #c82333;
+		}
+
+		.confirm-btn.no {
+			background: #6c757d;
+			color: white;
+		}
+
+		.confirm-btn.no:hover {
+			background: #545b62;
+		}
+
+		/* Индикатор загрузки аудио */
+		.audio-loading {
+			text-align: center;
+			padding: 10px;
+			color: #6c757d;
+			font-size: 14px;
+		}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎨 P2P Wall</h1>
+            <p class="subtitle">Полностью браузерная децентрализованная стена</p>
+        </header>
+
+        <div class="status-bar">
+            <div class="status-item">
+                <span>Статус:</span>
+                <span id="statusBadge" class="status-badge disconnected">Отключен</span>
+            </div>
+            <div class="status-item">
+                <span>👥 Пиров:</span>
+                <span id="peerCount">0</span>
+            </div>
+            <div class="status-item">
+                <span>📝 Постов:</span>
+                <span id="postCount">0</span>
+            </div>
+            <div class="status-item">
+                <span>🆔 ID стены:</span>
+                <span id="wallIdDisplay">Не создана</span>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- Левая панель - управление -->
+            <div class="control-panel">
+                <div class="control-group">
+                    <h3>🆔 ID СТЕНЫ</h3>
+                    <div class="id-card">
+                        <div class="label">Ваш уникальный ID стены:</div>
+                        <div class="value" id="wallIdFull">Сначала создайте стену</div>
+                        <div class="copy-buttons">
+                            <button onclick="copyWallId()" class="copy-btn" id="copyWallIdBtn">
+                                <span class="icon">📋</span> Копировать ID
+                            </button>
+                            <button onclick="copyMagnet()" class="copy-btn" id="copyMagnetBtn">
+                                <span class="icon">🔗</span> Копировать Magnet
+                            </button>
+                            <button onclick="showShareModal()" class="copy-btn">
+                                <span class="icon">📤</span> Поделиться
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>🎯 Управление</h3>
+                    <div class="input-group">
+                        <input type="text" id="wallInput" placeholder="Вставьте ID или Magnet ссылку">
+                        <button onclick="joinWall()" class="btn btn-primary">
+                            <span class="icon">🔗</span> Присоединиться
+                        </button>
+                    </div>
+                    <button onclick="createWall()" class="btn btn-primary" style="width: 100%; margin-bottom: 10px;">
+                        <span class="icon">➕</span> Создать новую стену
+                    </button>
+                    <button onclick="generateInviteLink()" class="btn btn-info btn-small">
+                        <span class="icon">🔗</span> Создать пригласительную ссылку
+                    </button>
+                </div>
+
+                <div class="control-group">
+                    <h3>➕ Новый пост</h3>
+                    <div class="post-form">
+                        <textarea id="postText" placeholder="Напишите что-нибудь..."></textarea>
+                        <div class="file-inputs">
+                            <label>
+                                <input type="file" id="imageInput" accept="image/*" style="display: none;">
+                                <span class="icon">🖼️</span> Добавить изображение
+                            </label>
+                            <label>
+                                <input type="file" id="audioInput" accept="audio/*" style="display: none;">
+                                <span class="icon">🎵</span> Добавить аудио
+                            </label>
+                        </div>
+                        <button onclick="addPost()" class="btn btn-primary" style="width: 100%;">
+                            <span class="icon">📨</span> Опубликовать
+                        </button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>👥 Активные пиры</h3>
+                    <div class="peers-list" id="peersList">
+                        <div class="loading">Нет активных пиров</div>
+                    </div>
+                    <button onclick="refreshPeers()" class="btn btn-secondary btn-small" style="margin-top: 10px;">
+                        <span class="icon">🔄</span> Обновить список
+                    </button>
+                </div>
+				
+				<div class="control-group">
+					<h3>🗑️ Управление данными</h3>
+					<div class="cleanup-section">
+						<p><strong>⚠️ Осторожно!</strong> Эти действия нельзя отменить.</p>
+						<div class="cleanup-buttons">
+							<button onclick="showClearDataConfirm()" class="cleanup-btn warning">
+								<span class="icon">🧹</span> Очистить локальные данные
+							</button>
+							<button onclick="showDeleteWallConfirm()" class="cleanup-btn">
+								<span class="icon">🗑️</span> Удалить текущую стену
+							</button>
+						</div>
+						<p style="margin-top: 10px; font-size: 12px; color: #666;">
+							Очистка удалит все данные из вашего браузера, но не затронет данные других участников.
+						</p>
+					</div>
+				</div>
+            </div>
+
+            <!-- Правая панель - стена -->
+            <div class="wall-container">
+                <div id="messageArea"></div>
+                <div id="wallContent">
+                    <div class="loading">
+                        <h3>Добро пожаловать в P2P Wall! 🎨</h3>
+                        <p>Создайте новую стену или присоединитесь к существующей.</p>
+                        <div class="spinner"></div>
+                        <p>Загрузка P2P системы...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для магнета -->
+    <div id="magnetModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">🔗 Поделиться стеной</h3>
+                <button onclick="closeModal()" class="close-modal">&times;</button>
+            </div>
+            
+            <div class="full-magnet" id="fullMagnetDisplay">
+                Загрузка...
+            </div>
+            
+            <div class="copy-buttons" style="margin: 20px 0;">
+                <button onclick="copyFullMagnet()" class="copy-btn" id="copyFullMagnetBtn">
+                    <span class="icon">📋</span> Копировать Magnet ссылку
+                </button>
+                <button onclick="copyInviteLink()" class="copy-btn" id="copyInviteLinkBtn">
+                    <span class="icon">🔗</span> Копировать пригласительную ссылку
+                </button>
+            </div>
+            
+            <div class="qr-container">
+                <h4>📱 QR-код для быстрого подключения:</h4>
+                <canvas id="qrCode"></canvas>
+                <p>Отсканируйте QR-код с телефона для подключения</p>
+            </div>
+            
+            <div style="margin-top: 20px;">
+                <h4>📝 Как подключиться:</h4>
+                <ol style="padding-left: 20px; margin-top: 10px;">
+                    <li>Отправьте Magnet ссылку другу</li>
+                    <li>Или отправьте пригласительную ссылку</li>
+                    <li>Или попросите отсканировать QR-код</li>
+                    <li>Получатель вставляет ссылку в поле "ID стены"</li>
+                    <li>Нажимает кнопку "Присоединиться"</li>
+                </ol>
+            </div>
+            
+            <button onclick="closeModal()" class="btn btn-secondary" style="width: 100%; margin-top: 20px;">
+                Закрыть
+            </button>
+        </div>
+    </div>
+
+    <!-- Подключаем библиотеки через CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/webtorrent@1.8.4/webtorrent.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+
+    <script>
+        // Глобальные переменные
+        let wallClient = null;
+        let currentWall = null;
+        let wallId = null;
+        let wallMagnet = null;
+        let posts = [];
+        let peers = new Map();
+        let activeTorrents = new Map();
+        let inviteLink = null;
+		let pendingAction = null;
+		let pendingPostId = null;
+
+        // Инициализация при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeWallSystem();
+            loadLastWall();
+        });
+
+        function initializeWallSystem() {
+            try {
+                // Создаем WebTorrent клиент
+                wallClient = new WebTorrent();
+                
+                // Слушаем события подключения пиров
+                wallClient.on('torrent', (torrent) => {
+                    console.log('Новый торрент добавлен:', torrent.name);
+                    activeTorrents.set(torrent.infoHash, torrent);
+                    updatePeersList();
+                });
+                
+                updateStatus('Готов к работе');
+                showMessage('✅ P2P система инициализирована', 'success');
+                
+            } catch (error) {
+                console.error('Ошибка инициализации:', error);
+                showMessage('❌ Ошибка инициализации P2P системы', 'error');
+            }
+        }
+
+        function createWall() {
+            try {
+                // Генерируем уникальный ID для стены
+                wallId = generateWallId();
+                
+                // Создаем начальные данные стены
+                currentWall = {
+                    id: wallId,
+                    name: 'Моя P2P стена',
+                    created: Date.now(),
+                    posts: [],
+                    peers: [],
+                    lastUpdate: Date.now()
+                };
+                
+                // Создаем magnet ссылку
+                wallMagnet = `wall:${wallId}:${Date.now()}`;
+                
+                // Сохраняем в localStorage
+                saveWallToStorage();
+                
+                // Создаем торрент для стены
+                createWallTorrent();
+                
+                // Обновляем интерфейс
+                updateWallInfo();
+                updateStatus('Стена создана');
+                showMessage('✅ Стена успешно создана!', 'success');
+                
+                // Показываем модальное окно для копирования
+                setTimeout(() => {
+                    showShareModal();
+                }, 500);
+                
+            } catch (error) {
+                console.error('Ошибка создания стены:', error);
+                showMessage('❌ Ошибка создания стены', 'error');
+            }
+        }
+
+        function generateWallId() {
+            const timestamp = Date.now().toString(36);
+            const random = Math.random().toString(36).substr(2, 9);
+            return `wall_${timestamp}_${random}`;
+        }
+
+        function createWallTorrent() {
+            if (!currentWall || !wallClient) return;
+            
+            try {
+                // Создаем Blob с данными стены
+                const wallData = JSON.stringify(currentWall, null, 2);
+                const blob = new Blob([wallData], { type: 'application/json' });
+                
+                // Создаем торрент
+                wallClient.seed(blob, {
+                    name: `P2P_Wall_${wallId}`,
+                    announce: [
+                        'wss://tracker.openwebtorrent.com', // Основной надежный трекер
+						'wss://tracker.files.fm:7073/announce',
+						'wss://tracker.webtorrent.dev', // Запасной трекер
+						'udp://tracker.opentrackr.org:1337/announce' // UDP-трекер для лучшей совместимости
+                    ]
+                }, (torrent) => {
+                    if (torrent) {
+                        wallMagnet = torrent.magnetURI;
+                        console.log('Торрент стены создан:', wallMagnet);
+                        updateWallInfo();
+                    }
+                });
+                
+            } catch (error) {
+                console.error('Ошибка создания торрента:', error);
+            }
+        }
+
+        function joinWall(id = null) {
+            try {
+                const input = id || document.getElementById('wallInput').value.trim();
+                
+                if (!input) {
+                    showMessage('❌ Введите ID стены или Magnet ссылку', 'error');
+                    return;
+                }
+                
+                updateStatus('Присоединение...');
+                
+                // Очищаем предыдущие торренты
+                clearOldTorrents();
+                
+                // Определяем тип ввода (ID или Magnet)
+                if (input.startsWith('magnet:')) {
+                    // Это magnet ссылка
+                    joinViaMagnet(input);
+                } else if (input.startsWith('wall:')) {
+                    // Это ID стены
+                    wallId = input;
+                    joinViaId();
+                } else {
+                    // Пробуем как ID
+                    wallId = input;
+                    joinViaId();
+                }
+                
+            } catch (error) {
+                console.error('Ошибка присоединения:', error);
+                showMessage('❌ Ошибка присоединения к стене', 'error');
+                updateStatus('Ошибка');
+            }
+        }
+
+        function joinViaMagnet(magnet) {
+            wallClient.add(magnet, (torrent) => {
+                if (torrent) {
+                    console.log('Подключились через Magnet:', torrent.name);
+                    
+                    // Извлекаем данные из торрента
+                    const metadataFile = torrent.files.find(f => f.name.includes('.json'));
+                    if (metadataFile) {
+                        metadataFile.getBuffer((err, buffer) => {
+                            if (!err && buffer) {
+                                try {
+                                    const wallData = JSON.parse(buffer.toString());
+                                    loadWallData(wallData, magnet);
+                                } catch (error) {
+                                    console.error('Ошибка парсинга:', error);
+                                    showMessage('❌ Неверный формат данных стены', 'error');
+                                }
+                            }
+                        });
+                    }
+                } else {
+                    showMessage('❌ Не удалось подключиться через Magnet ссылку', 'error');
+                }
+            });
+        }
+
+        function joinViaId() {
+            // Пробуем найти существующий торрент
+            const existingTorrent = Array.from(activeTorrents.values())
+                .find(t => t.name.includes(wallId));
+            
+            if (existingTorrent) {
+                loadWallFromTorrent(existingTorrent);
+            } else {
+                // Создаем новый поиск
+                const searchMagnet = `magnet:?xt=urn:btih:${wallId}&dn=P2P_Wall&tr=wss://tracker.openwebtorrent.com`;
+                joinViaMagnet(searchMagnet);
+            }
+        }
+
+        function loadWallData(wallData, magnet = null) {
+            currentWall = wallData;
+            wallId = wallData.id;
+            wallMagnet = magnet;
+            posts = wallData.posts || [];
+            
+            saveWallToStorage();
+            updateWallInfo();
+            renderWall();
+            updateStatus('Подключен');
+            showMessage('✅ Успешно подключились к стене!', 'success');
+            
+            // Обновляем список пиров
+            updatePeersList();
+        }
+
+        function addPost() {
+            try {
+                const text = document.getElementById('postText').value.trim();
+                const imageFile = document.getElementById('imageInput').files[0];
+                const audioFile = document.getElementById('audioInput').files[0];
+                
+                if (!text && !imageFile && !audioFile) {
+                    showMessage('❌ Добавьте текст или файл', 'error');
+                    return;
+                }
+                
+                // Создаем пост
+                const post = {
+                    id: generatePostId(),
+                    timestamp: Date.now(),
+                    text: text || null,
+                    author: 'Вы',
+                    magnet: null
+                };
+                
+                // Обрабатываем медиа файлы
+                const processPromises = [];
+                
+                if (imageFile) {
+                    processPromises.push(
+                        processFile(imageFile, 'image').then(data => {
+                            post.image = data;
+                            post.magnet = createPostTorrent(post);
+                        })
+                    );
+                } else if (audioFile) {
+                    processPromises.push(
+                        processFile(audioFile, 'audio').then(data => {
+                            post.audio = data;
+                            post.magnet = createPostTorrent(post);
+                        })
+                    );
+                } else {
+                    post.magnet = createPostTorrent(post);
+                }
+                
+                // Ждем обработки файлов
+                Promise.all(processPromises).then(() => {
+                    savePost(post);
+                });
+                
+            } catch (error) {
+                console.error('Ошибка добавления поста:', error);
+                showMessage('❌ Ошибка добавления поста', 'error');
+            }
+        }
+
+        function generatePostId() {
+            return `post_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+        }
+
+        function processFile(file, type) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    resolve({
+                        type: type,
+                        data: e.target.result,
+                        name: file.name,
+                        size: file.size,
+                        mime: file.type
+                    });
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function createPostTorrent(post) {
+            try {
+                const postData = JSON.stringify(post);
+                const blob = new Blob([postData], { type: 'application/json' });
+                
+                let magnet = null;
+                
+                wallClient.seed(blob, {
+                    name: `post_${post.id}.json`,
+                    announce: [
+                        'wss://tracker.openwebtorrent.com',
+                        'wss://tracker.btorrent.xyz'
+                    ]
+                }, (torrent) => {
+                    if (torrent) {
+                        magnet = torrent.magnetURI;
+                        console.log('Пост раздается:', magnet);
+                    }
+                });
+                
+                return magnet;
+            } catch (error) {
+                console.error('Ошибка создания торрента:', error);
+                return null;
+            }
+        }
+
+        function savePost(post) {
+            // Добавляем пост
+            posts.unshift(post);
+            
+            // Обновляем стену
+            if (currentWall) {
+                currentWall.posts = posts;
+                currentWall.lastUpdate = Date.now();
+                
+                // Обновляем торрент стены
+                updateWallTorrent();
+                
+                // Сохраняем
+                saveWallToStorage();
+                
+                // Обновляем интерфейс
+                renderWall();
+                updateWallInfo();
+                
+                // Очищаем форму
+                document.getElementById('postText').value = '';
+                document.getElementById('imageInput').value = '';
+                document.getElementById('audioInput').value = '';
+                
+                showMessage('✅ Пост опубликован и раздается через P2P!', 'success');
+            }
+        }
+
+        function updateWallTorrent() {
+            if (!currentWall || !wallClient) return;
+            
+            try {
+                // Находим торрент стены
+                const wallTorrent = Array.from(activeTorrents.values())
+                    .find(t => t.name.includes('P2P_Wall'));
+                
+                if (wallTorrent) {
+                    // Удаляем старый торрент
+                    wallClient.remove(wallTorrent);
+                    activeTorrents.delete(wallTorrent.infoHash);
+                }
+                
+                // Создаем новый торрент с обновленными данными
+                createWallTorrent();
+                
+            } catch (error) {
+                console.error('Ошибка обновления торрента:', error);
+            }
+        }
+
+        function renderWall() {
+            const wallContent = document.getElementById('wallContent');
+            
+            if (posts.length === 0) {
+                wallContent.innerHTML = `
+                    <div class="loading">
+                        <h3>🎨 Стена пуста</h3>
+                        <p>Будьте первым, кто добавит пост!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '<div class="wall">';
+            
+            posts.forEach(post => {
+				// Определяем тип медиа
+				const mediaContent = post.image 
+					? `<div class="post-media"><img src="${post.image.data}" alt="Изображение" class="post-image"></div>`
+					: post.audio 
+					? createAudioPlayer(post.audio)
+					: '';
+				
+				// Кнопки управления (только для своих постов)
+				const controls = post.author === 'Вы' ? `
+					<div class="post-controls">
+						<button onclick="showDeletePostConfirm('${post.id}')" class="post-control-btn delete">
+							<span class="icon">🗑️</span> Удалить
+						</button>
+						<button onclick="sharePost('${post.id}')" class="post-control-btn">
+							<span class="icon">📤</span> Поделиться
+						</button>
+					</div>
+				` : '';
+				
+				html += `
+					<div class="post" data-post-id="${post.id}">
+						<div class="post-header">
+							<div class="post-id">${post.author || 'Аноним'}</div>
+							<div class="post-timestamp">${formatDate(post.timestamp)}</div>
+						</div>
+						${post.text ? `<div class="post-text">${post.text}</div>` : ''}
+						${mediaContent}
+						${post.magnet ? `
+							<div class="magnet-link">
+								🔗 P2P ссылка: ${post.magnet.substring(0, 50)}...
+								<span class="copy-magnet" onclick="copyToClipboard('${post.magnet}', '✅ Magnet ссылка поста скопирована!')">
+									Копировать
+								</span>
+							</div>
+						` : ''}
+						${controls}
+					</div>
+				`;
+			});
+            
+            html += '</div>';
+            wallContent.innerHTML = html;
+        }
+
+        // ФУНКЦИИ КОПИРОВАНИЯ И ПОДЕЛИТЬСЯ
+        function copyWallId() {
+            if (!wallId) {
+                showMessage('❌ Сначала создайте стену', 'error');
+                return;
+            }
+            
+            copyToClipboard(wallId, '✅ ID стены скопирован в буфер обмена!');
+            
+            // Анимация кнопки
+            const btn = document.getElementById('copyWallIdBtn');
+            btn.classList.add('copied');
+            btn.innerHTML = '<span class="icon">✓</span> Скопировано';
+            setTimeout(() => {
+                btn.classList.remove('copied');
+                btn.innerHTML = '<span class="icon">📋</span> Копировать ID';
+            }, 2000);
+        }
+
+        function copyMagnet() {
+            if (!wallMagnet) {
+                showMessage('❌ Нет Magnet ссылки для этой стены', 'error');
+                return;
+            }
+            
+            copyToClipboard(wallMagnet, '✅ Magnet ссылка скопирована!');
+            
+            const btn = document.getElementById('copyMagnetBtn');
+            btn.classList.add('copied');
+            btn.innerHTML = '<span class="icon">✓</span> Скопировано';
+            setTimeout(() => {
+                btn.classList.remove('copied');
+                btn.innerHTML = '<span class="icon">🔗</span> Копировать Magnet';
+            }, 2000);
+        }
+
+        function copyFullMagnet() {
+            if (!wallMagnet) {
+                showMessage('❌ Нет Magnet ссылки', 'error');
+                return;
+            }
+            
+            copyToClipboard(wallMagnet, '✅ Полная Magnet ссылка скопирована!');
+            
+            const btn = document.getElementById('copyFullMagnetBtn');
+            btn.classList.add('copied');
+            btn.innerHTML = '<span class="icon">✓</span> Скопировано';
+            setTimeout(() => {
+                btn.classList.remove('copied');
+                btn.innerHTML = '<span class="icon">📋</span> Копировать Magnet ссылку';
+            }, 2000);
+        }
+
+		function sharePost(postId) {
+			const post = posts.find(p => p.id === postId);
+			if (!post) {
+				showMessage('❌ Пост не найден', 'error');
+				return;
+			}
+			
+			const shareText = post.text ? `Пост: ${post.text.substring(0, 100)}...` : 'Интересный пост с P2P Wall';
+			const shareUrl = post.magnet || generateInviteLink() || window.location.href;
+			
+			if (navigator.share) {
+				navigator.share({
+					title: 'P2P Wall - Пост',
+					text: shareText,
+					url: shareUrl
+				}).then(() => {
+					showMessage('✅ Пост опубликован!', 'success');
+				}).catch(error => {
+					console.error('Ошибка шеринга:', error);
+					copyToClipboard(shareUrl, '✅ Ссылка на пост скопирована!');
+				});
+			} else {
+				copyToClipboard(shareUrl, '✅ Ссылка на пост скопирована в буфер обмена!');
+			}
+		}
+
+        function copyInviteLink() {
+            generateInviteLink();
+            
+            if (!inviteLink) {
+                showMessage('❌ Не удалось создать ссылку', 'error');
+                return;
+            }
+            
+            copyToClipboard(inviteLink, '✅ Пригласительная ссылка скопирована!');
+            
+            const btn = document.getElementById('copyInviteLinkBtn');
+            btn.classList.add('copied');
+            btn.innerHTML = '<span class="icon">✓</span> Скопировано';
+            setTimeout(() => {
+                btn.classList.remove('copied');
+                btn.innerHTML = '<span class="icon">🔗</span> Копировать пригласительную ссылку';
+            }, 2000);
+        }
+
+        function copyToClipboard(text, successMessage) {
+            navigator.clipboard.writeText(text)
+                .then(() => {
+                    showMessage(successMessage, 'success');
+                })
+                .catch(err => {
+                    console.error('Ошибка копирования:', err);
+                    // Fallback для старых браузеров
+                    const textArea = document.createElement('textarea');
+                    textArea.value = text;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    showMessage(successMessage, 'success');
+                });
+        }
+
+        function showShareModal() {
+            if (!wallId) {
+                showMessage('❌ Сначала создайте стену', 'error');
+                return;
+            }
+            
+            const modal = document.getElementById('magnetModal');
+            const display = document.getElementById('fullMagnetDisplay');
+            
+            // Обновляем содержимое
+            display.textContent = wallMagnet || 'Загрузка Magnet ссылки...';
+            
+            // Генерируем QR-код
+            generateQRCode();
+            
+            // Показываем модальное окно
+            modal.style.display = 'flex';
+            
+            // Генерируем пригласительную ссылку
+            generateInviteLink();
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('magnetModal');
+            modal.style.display = 'none';
+        }
+
+        function generateInviteLink() {
+            if (!wallId) return;
+            
+            // Создаем ссылку для приглашения
+            const currentUrl = window.location.href.split('?')[0];
+            inviteLink = `${currentUrl}?join=${encodeURIComponent(wallId)}&t=${Date.now()}`;
+            
+            return inviteLink;
+        }
+
+        function generateQRCode() {
+            const canvas = document.getElementById('qrCode');
+            const qrData = wallMagnet || generateInviteLink() || window.location.href;
+            
+            if (!qrData) return;
+            
+            // Очищаем canvas
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Создаем QR-код
+            const qr = new QRious({
+                element: canvas,
+                value: qrData,
+                size: 200,
+                level: 'H'
+            });
+        }
+
+        function updateWallInfo() {
+            // Обновляем ID стены
+            document.getElementById('wallIdDisplay').textContent = wallId 
+                ? wallId.substring(0, 15) + '...' 
+                : 'Не создана';
+            
+            // Обновляем полный ID
+            document.getElementById('wallIdFull').textContent = wallId || 'Сначала создайте стену';
+            
+            // Обновляем счетчики
+            document.getElementById('postCount').textContent = posts.length;
+            document.getElementById('peerCount').textContent = countPeers();
+            
+            // Обновляем поле ввода
+            if (wallId && !document.getElementById('wallInput').value) {
+                document.getElementById('wallInput').value = wallId;
+            }
+        }
+
+        function countPeers() {
+            let totalPeers = 0;
+            activeTorrents.forEach(torrent => {
+                totalPeers += torrent.numPeers;
+            });
+            return totalPeers;
+        }
+
+        function updatePeersList() {
+            const peersList = document.getElementById('peersList');
+            const peerCount = countPeers();
+            
+            if (peerCount === 0) {
+                peersList.innerHTML = '<div class="loading">Нет активных пиров</div>';
+                return;
+            }
+            
+            let html = '';
+            let peerIndex = 1;
+            
+            activeTorrents.forEach(torrent => {
+                torrent.wires.forEach((wire, index) => {
+                    if (wire.connected) {
+                        const peerId = `peer_${peerIndex}`;
+                        html += `
+                            <div class="peer-item">
+                                <div class="peer-avatar">${peerIndex}</div>
+                                <div>Пир #${peerIndex}</div>
+                                <div style="margin-left: auto; font-size: 12px; color: #28a745;">
+                                    ● Активен
+                                </div>
+                            </div>
+                        `;
+                        peerIndex++;
+                    }
+                });
+            });
+            
+            peersList.innerHTML = html || '<div class="loading">Нет активных подключений</div>';
+        }
+
+        function refreshPeers() {
+            updatePeersList();
+            showMessage('🔄 Список пиров обновлен', 'info');
+        }
+
+        function clearOldTorrents() {
+            activeTorrents.forEach(torrent => {
+                if (torrent && wallClient) {
+                    wallClient.remove(torrent);
+                }
+            });
+            activeTorrents.clear();
+        }
+
+        function loadLastWall() {
+            const lastWallId = localStorage.getItem('last_wall_id');
+            if (lastWallId) {
+                const savedWall = localStorage.getItem('p2p_wall_' + lastWallId);
+                if (savedWall) {
+                    try {
+                        const wallData = JSON.parse(savedWall);
+                        loadWallData(wallData);
+                        showMessage('📂 Последняя стена загружена из памяти', 'info');
+                    } catch (error) {
+                        console.error('Ошибка загрузки:', error);
+                    }
+                }
+            }
+        }
+
+        function saveWallToStorage() {
+            if (currentWall) {
+                localStorage.setItem('p2p_wall_' + wallId, JSON.stringify(currentWall));
+                localStorage.setItem('last_wall_id', wallId);
+            }
+        }
+
+        function updateStatus(status) {
+            const badge = document.getElementById('statusBadge');
+            if (status.includes('Ошибка') || status.includes('Отключен')) {
+                badge.className = 'status-badge disconnected';
+                badge.textContent = 'Отключен';
+            } else {
+                badge.className = 'status-badge connected';
+                badge.textContent = status;
+            }
+        }
+
+        function showMessage(text, type = 'info') {
+            const messageArea = document.getElementById('messageArea');
+            messageArea.innerHTML = `<div class="message ${type}">${text}</div>`;
+            
+            setTimeout(() => {
+                messageArea.innerHTML = '';
+            }, 5000);
+        }
+		
+		// Функции подтверждения действий
+		function showDeletePostConfirm(postId) {
+			pendingAction = 'delete_post';
+			pendingPostId = postId;
+			
+			const post = posts.find(p => p.id === postId);
+			const message = post ? `Удалить пост "${post.text?.substring(0, 50) || 'без текста'}"?` : 'Удалить пост?';
+			
+			document.getElementById('confirmTitle').textContent = 'Удаление поста';
+			document.getElementById('confirmMessage').textContent = message;
+			document.getElementById('confirmModal').style.display = 'flex';
+		}
+
+		function showClearDataConfirm() {
+			pendingAction = 'clear_data';
+			pendingPostId = null;
+			
+			document.getElementById('confirmTitle').textContent = 'Очистка данных';
+			document.getElementById('confirmMessage').textContent = 'Очистить ВСЕ локальные данные? Это удалит все ваши стены и посты.';
+			document.getElementById('confirmModal').style.display = 'flex';
+		}
+
+		function showDeleteWallConfirm() {
+			if (!wallId) {
+				showMessage('❌ Нет активной стены для удаления', 'error');
+				return;
+			}
+			
+			pendingAction = 'delete_wall';
+			pendingPostId = null;
+			
+			document.getElementById('confirmTitle').textContent = 'Удаление стены';
+			document.getElementById('confirmMessage').textContent = `Удалить стену "${wallId}"? Это удалит её только с вашего устройства.`;
+			document.getElementById('confirmModal').style.display = 'flex';
+		}
+
+		function confirmAction(confirmed) {
+			const modal = document.getElementById('confirmModal');
+			modal.style.display = 'none';
+			
+			if (!confirmed) {
+				pendingAction = null;
+				pendingPostId = null;
+				return;
+			}
+			
+			switch(pendingAction) {
+				case 'delete_post':
+					deletePost(pendingPostId);
+					break;
+				case 'clear_data':
+					clearLocalData();
+					break;
+				case 'delete_wall':
+					deleteCurrentWall();
+					break;
+			}
+			
+			pendingAction = null;
+			pendingPostId = null;
+		}
+
+		// Удаление поста
+		function deletePost(postId) {
+			try {
+				// Находим индекс поста
+				const postIndex = posts.findIndex(p => p.id === postId);
+				if (postIndex === -1) {
+					showMessage('❌ Пост не найден', 'error');
+					return;
+				}
+				
+				// Удаляем пост из массива
+				const deletedPost = posts.splice(postIndex, 1)[0];
+				
+				// Обновляем стену
+				if (currentWall) {
+					currentWall.posts = posts;
+					currentWall.lastUpdate = Date.now();
+					
+					// Обновляем торрент стены
+					updateWallTorrent();
+					
+					// Сохраняем
+					saveWallToStorage();
+					
+					// Обновляем интерфейс
+					renderWall();
+					updateWallInfo();
+					
+					// Пытаемся удалить торрент поста
+					removePostTorrent(deletedPost);
+					
+					showMessage('✅ Пост удалён', 'success');
+				}
+				
+			} catch (error) {
+				console.error('Ошибка удаления поста:', error);
+				showMessage('❌ Ошибка удаления поста', 'error');
+			}
+		}
+
+		function removePostTorrent(post) {
+			if (!post || !wallClient) return;
+			
+			try {
+				// Ищем торрент поста
+				const postTorrent = Array.from(activeTorrents.values())
+					.find(t => t.name.includes(post.id));
+				
+				if (postTorrent) {
+					wallClient.remove(postTorrent);
+					activeTorrents.delete(postTorrent.infoHash);
+					console.log('Торрент поста удалён:', post.id);
+				}
+			} catch (error) {
+				console.error('Ошибка удаления торрента:', error);
+			}
+		}
+
+		// Удаление текущей стены
+		function deleteCurrentWall() {
+			try {
+				if (!wallId) {
+					showMessage('❌ Нет активной стены', 'error');
+					return;
+				}
+				
+				// Удаляем из localStorage
+				localStorage.removeItem('p2p_wall_' + wallId);
+				localStorage.removeItem('last_wall_id');
+				
+				// Очищаем все торренты этой стены
+				clearWallTorrents();
+				
+				// Сбрасываем состояние
+				wallId = null;
+				wallMagnet = null;
+				currentWall = null;
+				posts = [];
+				activeTorrents.clear();
+				
+				// Обновляем интерфейс
+				updateWallInfo();
+				renderWall();
+				updateStatus('Стена удалена');
+				
+				// Очищаем поле ввода
+				document.getElementById('wallInput').value = '';
+				
+				showMessage('✅ Стена удалена с вашего устройства', 'success');
+				
+			} catch (error) {
+				console.error('Ошибка удаления стены:', error);
+				showMessage('❌ Ошибка удаления стены', 'error');
+			}
+		}
+
+		function clearWallTorrents() {
+			try {
+				activeTorrents.forEach(torrent => {
+					if (wallClient) {
+						wallClient.remove(torrent);
+					}
+				});
+				activeTorrents.clear();
+			} catch (error) {
+				console.error('Ошибка очистки торрентов:', error);
+			}
+		}
+
+		// Очистка всех локальных данных
+		function clearLocalData() {
+			try {
+				// Очищаем localStorage
+				localStorage.clear();
+				
+				// Очищаем все торренты
+				if (wallClient) {
+					wallClient.torrents.forEach(torrent => {
+						wallClient.remove(torrent);
+					});
+				}
+				activeTorrents.clear();
+				
+				// Сбрасываем состояние
+				wallId = null;
+				wallMagnet = null;
+				currentWall = null;
+				posts = [];
+				inviteLink = null;
+				
+				// Обновляем интерфейс
+				updateWallInfo();
+				renderWall();
+				updateStatus('Данные очищены');
+				
+				// Очищаем поля ввода
+				document.getElementById('wallInput').value = '';
+				document.getElementById('postText').value = '';
+				
+				showMessage('✅ Все локальные данные очищены', 'success');
+				
+			} catch (error) {
+				console.error('Ошибка очистки данных:', error);
+				showMessage('❌ Ошибка очистки данных', 'error');
+			}
+		}
+
+		// Улучшенный плеер для аудио
+		function createAudioPlayer(audioData) {
+			if (!audioData) return '';
+			
+			const fileName = audioData.name || 'Аудио файл';
+			const fileSize = formatFileSize(audioData.size || 0);
+			
+			return `
+				<div class="audio-player">
+					<div class="audio-info">
+						<span class="audio-icon">🎵</span>
+						<div>
+							<div class="audio-title">${fileName}</div>
+							<div style="font-size: 12px; color: #6c757d;">${fileSize}</div>
+						</div>
+					</div>
+					<audio controls preload="metadata">
+						<source src="${audioData.data}" type="${audioData.mime || 'audio/mpeg'}">
+						Ваш браузер не поддерживает аудио
+					</audio>
+					<div style="margin-top: 8px; font-size: 12px; color: #6c757d; text-align: center;">
+						🔊 Нажмите для воспроизведения
+					</div>
+				</div>
+			`;
+		}
+
+		// Функция форматирования размера файла
+		function formatFileSize(bytes) {
+			if (bytes === 0) return '0 Б';
+			const k = 1024;
+			const sizes = ['Б', 'КБ', 'МБ', 'ГБ'];
+			const i = Math.floor(Math.log(bytes) / Math.log(k));
+			return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+		}
+
+        function formatDate(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleString('ru-RU', {
+                hour: '2-digit',
+                minute: '2-digit',
+                day: '2-digit',
+                month: '2-digit'
+            });
+        }
+
+        // Обработка URL параметров
+        function checkUrlParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const joinParam = urlParams.get('join');
+            
+            if (joinParam) {
+                document.getElementById('wallInput').value = decodeURIComponent(joinParam);
+                joinWall(decodeURIComponent(joinParam));
+            }
+        }
+
+        // Проверяем URL параметры
+        setTimeout(checkUrlParams, 1000);
+
+        // Экспортируем функции
+        window.createWall = createWall;
+        window.joinWall = joinWall;
+        window.addPost = addPost;
+        window.copyWallId = copyWallId;
+        window.copyMagnet = copyMagnet;
+        window.showShareModal = showShareModal;
+        window.closeModal = closeModal;
+        window.copyFullMagnet = copyFullMagnet;
+        window.copyInviteLink = copyInviteLink;
+        window.generateInviteLink = generateInviteLink;
+        window.refreshPeers = refreshPeers;
+		window.showDeletePostConfirm = showDeletePostConfirm;
+		window.showClearDataConfirm = showClearDataConfirm;
+		window.showDeleteWallConfirm = showDeleteWallConfirm;
+		window.sharePost = sharePost;
+		window.confirmAction = confirmAction;
+    </script>
+	
+	<!-- Модальное окно подтверждения -->
+	<div id="confirmModal" class="confirm-modal">
+		<div class="confirm-content">
+			<h3 id="confirmTitle">Подтверждение</h3>
+			<p id="confirmMessage">Вы уверены?</p>
+			<div class="confirm-buttons">
+				<button onclick="confirmAction(true)" class="confirm-btn yes">Да</button>
+				<button onclick="confirmAction(false)" class="confirm-btn no">Нет</button>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
