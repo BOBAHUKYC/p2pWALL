@@ -1025,35 +1025,49 @@
             return `wall_${timestamp}_${random}`;
         }
 
-        function createWallTorrent() {
-            if (!currentWall || !wallClient) return;
-            
-            try {
-                // Создаем Blob с данными стены
-                const wallData = JSON.stringify(currentWall, null, 2);
-                const blob = new Blob([wallData], { type: 'application/json' });
-                
-                // Создаем торрент
-                wallClient.seed(blob, {
-                    name: `P2P_Wall_${wallId}`,
-                    announce: [
-                        'wss://tracker.openwebtorrent.com', // Основной надежный трекер
+        async function createWallTorrent() {
+			if (!currentWall || !wallClient) return;
+
+			// 1. УДАЛЯЕМ СТАРЫЙ ТОРРЕНТ СТЕНЫ, ЕСЛИ ОН ЕСТЬ
+			if (window.existingWallTorrent) { // Используем глобальную переменную для хранения ссылки
+				console.log('Удаляю старый торрент стены...');
+				try {
+					wallClient.remove(window.existingWallTorrent);
+					activeTorrents.delete(window.existingWallTorrent.infoHash);
+				} catch(e) { console.error('Ошибка удаления торрента:', e); }
+				window.existingWallTorrent = null;
+			}
+
+			try {
+				const wallData = JSON.stringify(currentWall, null, 2);
+				const blob = new Blob([wallData], { type: 'application/json' });
+				
+				wallClient.seed(blob, {
+					name: `P2P_Wall_${wallId}`,
+					comment: 'Decentralized wall using BitTorrent',
+					createdBy: 'P2P-Wall-App',
+					announce: [
+						'wss://tracker.openwebtorrent.com',
 						'wss://tracker.files.fm:7073/announce',
-						'wss://tracker.webtorrent.dev', // Запасной трекер
-						'udp://tracker.opentrackr.org:1337/announce' // UDP-трекер для лучшей совместимости
-                    ]
-                }, (torrent) => {
-                    if (torrent) {
-                        wallMagnet = torrent.magnetURI;
-                        console.log('Торрент стены создан:', wallMagnet);
-                        updateWallInfo();
-                    }
-                });
-                
-            } catch (error) {
-                console.error('Ошибка создания торрента:', error);
-            }
-        }
+						'wss://tracker.webtorrent.dev'
+					]
+				}, (torrent) => {
+					if (!torrent) {
+						console.error('Не удалось создать торрент стены');
+						return;
+					}
+					
+					// 2. СОХРАНЯЕМ ССЫЛКУ НА НОВЫЙ ТОРРЕНТ
+					window.existingWallTorrent = torrent;
+					activeTorrents.set(torrent.infoHash, torrent);
+					wallMagnet = torrent.magnetURI;
+					
+					console.log('✅ Торрент стены создан:', torrent.infoHash);
+				});
+			} catch (error) {
+				console.error('Ошибка создания торрента:', error);
+			}
+		}
 
         function joinWall(id = null) {
             try {
@@ -1219,6 +1233,13 @@
         }
 
         function createPostTorrent(post) {
+			// Проверяем, не создан ли уже торрент для этого поста
+			const existingTorrent = Array.from(activeTorrents.values())
+				.find(t => t.name.includes(post.id));
+			if (existingTorrent) {
+				console.log('Торрент для этого поста уже существует:', post.id);
+				return existingTorrent.magnetURI; // Возвращаем существующую ссылку
+			}
             try {
                 const postData = JSON.stringify(post);
                 const blob = new Blob([postData], { type: 'application/json' });
@@ -1503,7 +1524,7 @@
             
             // Создаем ссылку для приглашения
             const currentUrl = window.location.href.split('?')[0];
-            inviteLink = `${currentUrl}?join=${encodeURIComponent(wallId)}&t=${Date.now()}`;
+            inviteLink = `${currentUrl}?join=${encodeURIComponent(wallMagnet)}&t=${Date.now()}`;
             
             return inviteLink;
         }
