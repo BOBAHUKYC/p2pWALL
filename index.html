@@ -1104,31 +1104,70 @@
             }
         }
 
-        function joinViaMagnet(magnet) {
-            wallClient.add(magnet, (torrent) => {
-                if (torrent) {
-                    console.log('Подключились через Magnet:', torrent.name);
-                    
-                    // Извлекаем данные из торрента
-                    const metadataFile = torrent.files.find(f => f.name.includes('.json'));
-                    if (metadataFile) {
-                        metadataFile.getBuffer((err, buffer) => {
-                            if (!err && buffer) {
-                                try {
-                                    const wallData = JSON.parse(buffer.toString());
-                                    loadWallData(wallData, magnet);
-                                } catch (error) {
-                                    console.error('Ошибка парсинга:', error);
-                                    showMessage('❌ Неверный формат данных стены', 'error');
-                                }
-                            }
-                        });
-                    }
-                } else {
-                    showMessage('❌ Не удалось подключиться через Magnet ссылку', 'error');
-                }
-            });
-        }
+		function joinViaMagnet(magnet) {
+			console.log('Пытаюсь подключиться через Magnet:', magnet);
+			updateStatus('Подключение к P2P сети...');
+			showLoading('Поиск стены в P2P сети...');
+
+			wallClient.add(magnet, { maxWebConns: 20 }, (torrent) => {
+				if (!torrent) {
+					console.error('Не удалось добавить торрент по ссылке:', magnet);
+					showMessage('❌ Не удалось подключиться. Проверьте Magnet-ссылку.', 'error');
+					updateStatus('Ошибка подключения');
+					showLoading('Стена не найдена');
+					return;
+				}
+
+				console.log('Торрент добавлен:', torrent.name);
+				activeTorrents.set(torrent.infoHash, torrent);
+
+				// ВАЖНО: Ждем, пока торрент будет готов к чтению файлов
+				torrent.on('ready', () => {
+					console.log('Торрент готов, ищем файл metadata...');
+					
+					const metadataFile = torrent.files.find(f => f.name.endsWith('.json') || f.name.includes('metadata'));
+					if (!metadataFile) {
+						showMessage('❌ В торренте не найден файл данных стены.', 'error');
+						updateStatus('Ошибка данных');
+						return;
+					}
+
+					console.log('Файл метаданных найден:', metadataFile.name);
+					metadataFile.getBuffer((err, buffer) => {
+						if (err) {
+							console.error('Ошибка чтения файла:', err);
+							showMessage('❌ Не удалось прочитать данные стены.', 'error');
+							return;
+						}
+
+						try {
+							const wallData = JSON.parse(buffer.toString());
+							console.log('Данные стены загружены. Постов:', wallData.posts?.length || 0);
+							
+							// Загружаем данные в интерфейс
+							loadWallData(wallData, magnet);
+							showMessage('✅ Успешно подключились к стене!', 'success');
+							updateStatus('Подключен');
+							
+						} catch (parseError) {
+							console.error('Ошибка разбора JSON:', parseError);
+							showMessage('❌ Данные стены повреждены.', 'error');
+						}
+					});
+				});
+
+				// Также можно слушать прогресс для отображения в UI
+				torrent.on('download', (bytes) => {
+					console.log(`Загружено: ${(torrent.progress * 100).toFixed(1)}%`);
+					// Здесь можно обновить прогресс-бар, если добавите его
+				});
+
+				torrent.on('error', (err) => {
+					console.error('Ошибка в торренте:', err);
+					showMessage('❌ Ошибка в P2P-соединении.', 'error');
+				});
+			});
+		}
 
         function joinViaId() {
             // Пробуем найти существующий торрент
